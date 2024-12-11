@@ -17,12 +17,14 @@ import {
     FileText,
     FileVideo
 } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import SidebarContent from './SidebarContent';
 
-export default function VideoPlay({ selectedVideo }) {
+export default function VideoPlay() {
     const navigate = useNavigate();
+    const location = useLocation();
     const videoRef = useRef(null);
+    const [selectedVideo, setSelectedVideo] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
@@ -33,11 +35,31 @@ export default function VideoPlay({ selectedVideo }) {
     const [showInfo, setShowInfo] = useState(false);
     const [showRecommendations, setShowRecommendations] = useState(false);
     const [isEditing, setIsEditing] = useState(false);
-    const [videoTitle, setVideoTitle] = useState(selectedVideo?.title || "");
+    const [videoTitle, setVideoTitle] = useState("");
     const [currentTime, setCurrentTime] = useState(0);
     const [duration, setDuration] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterBy, setFilterBy] = useState("all");
+
+    useEffect(() => {
+        // Check if video is passed through navigation state
+        if (location.state && location.state.selectedVideo) {
+            setSelectedVideo(location.state.selectedVideo);
+            setVideoTitle(location.state.selectedVideo.title);
+        } else {
+            // Fallback to default video if no video is selected
+            setSelectedVideo({
+                id: 1,
+                videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+                thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+                title: "Default Video",
+                artist: "Unknown Artist",
+                views: "0 views",
+                duration: "0:00"
+            });
+            setVideoTitle("Default Video");
+        }
+    }, [location.state]);
 
     // Sample videos data
     const [playlistVideos] = useState([
@@ -162,16 +184,18 @@ export default function VideoPlay({ selectedVideo }) {
         filteredVideos.sort((a, b) => a.title.localeCompare(b.title));
     }
 
+    if (!selectedVideo) return <div>Loading...</div>;
+
     return (
-        <div className="flex h-screen bg-[#0f0f0f]">
+        <div className="flex flex-col md:flex-row h-screen bg-[#0f0f0f]">
             {/* Main Content */}
-            <div className="flex-1 p-6 overflow-y-auto">
+            <div className="flex-1 p-4 md:p-6 overflow-y-auto">
                 {/* Back Button */}
                 <button 
                     onClick={() => navigate(-1)}
-                    className="flex items-center text-md text-[#f1f1f1] mb-4 hover:text-white"
+                    className="flex items-center text-sm md:text-md text-[#f1f1f1] mb-4 hover:text-white"
                 >
-                    <ArrowLeft className="mr-2" />
+                    <ArrowLeft className="mr-2" size={16} />
                     Back
                 </button>
 
@@ -188,10 +212,10 @@ export default function VideoPlay({ selectedVideo }) {
                         />
                         
                         {/* Video Controls */}
-                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-4">
-                            <div className="flex items-center space-x-4 text-white">
+                        <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 md:p-4">
+                            <div className="flex items-center space-x-3 md:space-x-4 text-white">
                                 <button onClick={togglePlay} className="hover:text-[#3ea6ff]">
-                                    {isPlaying ? <Pause /> : <Play />}
+                                    {isPlaying ? <Pause size={16} /> : <Play size={16} />}
                                 </button>
                                  
                                 <input
@@ -203,13 +227,13 @@ export default function VideoPlay({ selectedVideo }) {
                                     className="flex-1 h-1 bg-[#383838]"
                                 />
                                  
-                                <span className="text-sm text-[#f1f1f1]">
+                                <span className="text-xs md:text-sm text-[#f1f1f1]">
                                     {formatTime(currentTime)} / {formatTime(duration)}
                                 </span>
                                  
                                 <div className="flex items-center space-x-2" onMouseEnter={() => setIsShown(true)} onMouseLeave={() => setIsShown(false)}>
                                     <button onClick={toggleMute} className="hover:text-[#3ea6ff]">
-                                        {isMuted ? <VolumeX /> : <Volume2 />}
+                                        {isMuted ? <VolumeX size={16} /> : <Volume2 size={16} />}
                                     </button>
 
                                     {isShown && (
@@ -220,17 +244,17 @@ export default function VideoPlay({ selectedVideo }) {
                                             step="0.1"
                                             value={volume}
                                             onChange={handleVolumeChange}
-                                            className="w-20 h-1 bg-[#383838]"
+                                            className="w-16 md:w-20 h-1 bg-[#383838]"
                                         />
                                     )}
                                 </div>
                                  
                                 <button onClick={toggleLoop} className={`hover:text-[#3ea6ff] ${isLooping ? 'text-[#3ea6ff]' : ''}`}>
-                                    {isLooping ? <Repeat className="text-[#3ea6ff]" /> : <RotateCcw />}
+                                    {isLooping ? <Repeat size={16} className="text-[#3ea6ff]" /> : <RotateCcw size={16} />}
                                 </button>
                                  
                                 <button onClick={toggleFullscreen} className="hover:text-[#3ea6ff]">
-                                    {isFullscreen ? <Minimize /> : <Maximize />}
+                                    {isFullscreen ? <Minimize size={16} /> : <Maximize size={16} />}
                                 </button>
                             </div>
                         </div>
@@ -238,7 +262,7 @@ export default function VideoPlay({ selectedVideo }) {
                 </div>
 
                 {/* Video Information */}
-                <div className="mt-4 space-y-4">
+                <div className="mt-3 md:mt-4 space-y-3 md:space-y-4">
                     {/* Title */}
                     <div className="flex items-center justify-between">
                         {isEditing ? (
@@ -246,21 +270,21 @@ export default function VideoPlay({ selectedVideo }) {
                                 type="text"
                                 value={videoTitle}
                                 onChange={(e) => setVideoTitle(e.target.value)}
-                                className="flex-1 text-2xl font-bold px-2 py-1 bg-[#121212] border border-[#272727] rounded text-[#f1f1f1] focus:outline-none focus:border-[#3ea6ff]"
+                                className="flex-1 text-xl md:text-2xl font-bold px-2 py-1 bg-[#121212] border border-[#272727] rounded text-[#f1f1f1] focus:outline-none focus:border-[#3ea6ff]"
                                 autoFocus
                             />
                         ) : (
-                            <h2 className="text-2xl font-bold text-[#f1f1f1]">{videoTitle}</h2>
+                            <h2 className="text-xl md:text-2xl font-bold text-[#f1f1f1]">{videoTitle}</h2>
                         )}
                         <button 
                             onClick={handleTitleEdit}
-                            className="ml-2 p-2 hover:bg-[#272727] rounded-full text-[#f1f1f1]"
+                            className="ml-2 p-1 md:p-2 hover:bg-[#272727] rounded-full text-[#f1f1f1]"
                         >
-                            <Edit2 size={20} />
+                            <Edit2 size={16} />
                         </button>
                     </div>
 
-                    <div className="text-[#aaa]">
+                    <div className="text-xs md:text-sm text-[#aaa]">
                         <p>link</p>
                         <p>views</p>
                         <p>created_at</p>
@@ -268,18 +292,18 @@ export default function VideoPlay({ selectedVideo }) {
                     </div>
                     
                     {/* Action Buttons */}
-                    <div className="flex space-x-4">
+                    <div className="flex space-x-2 md:space-x-4">
                         <button 
                             onClick={() => {
                                 setShowLyrics(!showLyrics);
                                 setShowInfo(false);
                                 setShowRecommendations(false);
                             }}
-                            className={`flex items-center px-4 py-2 rounded ${
+                            className={`flex items-center px-3 md:px-4 py-1 md:py-2 rounded ${
                                 showLyrics ? 'bg-[#3ea6ff] text-white' : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#383838]'
                             }`}
                         >
-                            <FileText className="mr-2" size={20} />
+                            <FileText className="mr-1 md:mr-2" size={16} />
                             Show Lyrics
                         </button>
                         <button 
@@ -288,11 +312,11 @@ export default function VideoPlay({ selectedVideo }) {
                                 setShowLyrics(false);
                                 setShowRecommendations(false);
                             }}
-                            className={`flex items-center px-4 py-2 rounded ${
+                            className={`flex items-center px-3 md:px-4 py-1 md:py-2 rounded ${
                                 showInfo ? 'bg-[#3ea6ff] text-white' : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#383838]'
                             }`}
                         >
-                            <Info className="mr-2" size={20} />
+                            <Info className="mr-1 md:mr-2" size={16} />
                             Show Info
                         </button>
                         <button 
@@ -301,18 +325,18 @@ export default function VideoPlay({ selectedVideo }) {
                                 setShowLyrics(false);
                                 setShowRecommendations(!showRecommendations);
                             }}
-                            className={`flex items-center px-4 py-2 rounded ${
+                            className={`flex items-center px-3 md:px-4 py-1 md:py-2 rounded ${
                                 showRecommendations ? 'bg-[#3ea6ff] text-white' : 'bg-[#272727] text-[#f1f1f1] hover:bg-[#383838]'
                             }`}
                         >
-                            <FileVideo className="mr-2" size={20} />
+                            <FileVideo className="mr-1 md:mr-2" size={16} />
                             Show Recommendations
                         </button>
                     </div>
                 </div>
             </div>
 
-            {/* Sidebar */}
+            {/* SidebarContent */}
             <SidebarContent 
                 showLyrics={showLyrics} 
                 showInfo={showInfo} 
@@ -323,6 +347,7 @@ export default function VideoPlay({ selectedVideo }) {
                 setFilterBy={setFilterBy} 
                 filteredVideos={filteredVideos} 
                 selectedVideo={selectedVideo} 
+                className="md:w-96"
             />
         </div>
     );

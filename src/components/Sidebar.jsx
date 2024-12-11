@@ -17,10 +17,12 @@ export default function Sidebar({ children }) {
       duration-300
       border-r border-[#272727]
     `}>
-      <div className="flex justify-end">
+
+      <div className="flex justify-between items-center">
+      <h1 className={`font-bold text-2xl tracking-wide text-[#f1f1f1] overflow-hidden transition-all ${expanded ? "w-32" : "w-0"}`}>VideoHub</h1>
         <button
           onClick={() => setExpanded((curr) => !curr)}
-          className="p-1.5 rounded-lg hover:bg-[#272727]"
+          className="p-1.5 rounded-lg hover:bg-[#272727] flex justify-end"
         >
           {expanded ? <ChevronFirst /> : <ChevronLast />}
         </button>
@@ -29,6 +31,18 @@ export default function Sidebar({ children }) {
       <SidebarContext.Provider value={{ expanded }}>
         <nav className="space-y-2 pt-4">{children}</nav>
       </SidebarContext.Provider>
+
+      <div className="border-none flex p-3 absolute bottom-0 w-full">
+        <div className={`
+          flex justify-between items-center
+          overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}
+        >
+          <div className="leading-4">
+            <h4 className="font-semibold text-[#f1f1f1]">John Doe</h4>
+            <span className="text-xs text-[#aaaaaa]">johndoe@gmail.com</span>
+          </div>
+        </div>
+      </div>
     </aside>
   )
 }
@@ -85,7 +99,7 @@ export function SidebarItem({ icon, text, active, alert, children, onClick }) {
           />
         )}
 
-        {!expanded && (
+        {/* {!expanded && (
           <div
             className={`
               absolute left-full rounded-md px-2 py-1 ml-6
@@ -96,7 +110,7 @@ export function SidebarItem({ icon, text, active, alert, children, onClick }) {
           >
             {text}
           </div>
-        )}
+        )} */}
         
       </li>
       {children && isOpen && expanded && (

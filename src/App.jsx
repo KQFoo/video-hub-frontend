@@ -1,6 +1,6 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { LayoutDashboard, Download, Music, Video } from "lucide-react";
-import { BrowserRouter } from "react-router-dom";
+import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar, { SidebarItem, Submenu } from "./components/Sidebar";
 import DownloadVideo from "./components/Download";
 import Recommendation from "./components/Recommendation";
@@ -39,7 +39,7 @@ function AppContent() {
       case 'music':
         return <Playlist />;
       case 'video':
-        return <VideoPlay selectedVideo={selectedVideo} />;
+        return <Playlist />;
       default:
         return (
           <>
@@ -52,7 +52,7 @@ function AppContent() {
   };
 
   return (
-    <main className="flex h-screen bg-[#0f0f0f] text-white">
+    <div className="flex h-screen bg-[#0f0f0f] text-[#f1f1f1]">
       <Sidebar>
         <hr className="my-3 border-none" />
         <SidebarItem 
@@ -80,19 +80,24 @@ function AppContent() {
           />
         </SidebarItem>
       </Sidebar>
-      <div className="flex-1 overflow-auto">
+      <main className="flex-1 overflow-auto">
         <div className="">
           {renderContent()}
         </div>
-      </div>
-    </main>
+      </main>
+    </div>
   );
 }
 
-export default function App() {
+function App() {
   return (
     <BrowserRouter>
-      <AppContent />
+      <Routes>
+        <Route path="/" element={<AppContent />} />
+        <Route path="/VideoPlay" element={<VideoPlay />} />
+      </Routes>
     </BrowserRouter>
   );
 }
+
+export default App;

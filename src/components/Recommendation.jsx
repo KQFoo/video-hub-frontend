@@ -1,7 +1,9 @@
 import { useState } from "react";
-import { Plus } from 'react-feather';
+import { useNavigate } from 'react-router-dom';
 
 export default function Recommendation() {
+    const navigate = useNavigate();
+
     // Sample recommended videos data
     const [recommendedVideos] = useState([
         {
@@ -54,6 +56,7 @@ export default function Recommendation() {
                     <div 
                         key={video.id}
                         className="flex items-center p-2 hover:bg-[#272727] rounded"
+                        onClick={() => navigate('/VideoPlay', { state: { selectedVideo: video } })}
                     >
                         <img
                             src={video.thumbnail}
