@@ -1,12 +1,30 @@
 import { useState } from "react";
 import { LayoutDashboard, Download, Music, Video } from "lucide-react";
+import { BrowserRouter } from "react-router-dom";
 import Sidebar, { SidebarItem, Submenu } from "./components/Sidebar";
 import DownloadVideo from "./components/Download";
 import Recommendation from "./components/Recommendation";
 import Playlist from "./components/Playlist";
+import VideoPlay from "./components/Video";
 
-export default function App() { 
+function AppContent() {
   const [activeItem, setActiveItem] = useState('home');
+  const [selectedVideo] = useState({
+    id: 1,
+    videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4", // Sample video URL
+    thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
+    title: "Never Gonna Give You Up",
+    artist: "Rick Astley",
+    views: "1.2B views",
+    duration: "3:32",
+    lyrics: "Never gonna give you up\nNever gonna let you down\nNever gonna run around and desert you...",
+    info: {
+      artist: "Rick Astley",
+      album: "Whenever You Need Somebody",
+      year: "1987",
+      genre: "Pop"
+    }
+  });
 
   const renderContent = () => {
     switch (activeItem) {
@@ -14,16 +32,19 @@ export default function App() {
         return (
           <>
             <DownloadVideo />
+            <hr className="border-gray-300" />
             <Recommendation />
           </>
         );
       case 'music':
-      case 'video':
         return <Playlist />;
+      case 'video':
+        return <VideoPlay selectedVideo={selectedVideo} />;
       default:
         return (
           <>
             <DownloadVideo />
+            <hr className="border-gray-300" />
             <Recommendation />
           </>
         );
@@ -31,7 +52,7 @@ export default function App() {
   };
 
   return (
-    <main className="flex h-screen bg-gray-100">
+    <main className="flex h-screen bg-[#0f0f0f] text-white">
       <Sidebar>
         <hr className="my-3 border-none" />
         <SidebarItem 
@@ -60,10 +81,18 @@ export default function App() {
         </SidebarItem>
       </Sidebar>
       <div className="flex-1 overflow-auto">
-        <div className="p-4">
+        <div className="">
           {renderContent()}
         </div>
       </div>
     </main>
+  );
+}
+
+export default function App() {
+  return (
+    <BrowserRouter>
+      <AppContent />
+    </BrowserRouter>
   );
 }

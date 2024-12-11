@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { Plus } from 'react-feather';
 
 export default function Recommendation() {
     // Sample recommended videos data
@@ -46,28 +47,23 @@ export default function Recommendation() {
     ]);
 
     return (
-        <div className="p-6">
-            <h2 className="text-xl font-bold mb-4 text-gray-800">Recommended Videos</h2>
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+        <div className="bg-[#0f0f0f] text-[#f1f1f1] p-4">
+            <h1 className="text-2xl font-bold mb-4">Recommendations</h1>
+            <div className="space-y-2">
                 {recommendedVideos.map((video) => (
-                    <div key={video.id} className="rounded overflow-hidden hover:shadow-lg transition-shadow duration-300">
-                        <div className="relative">
-                            <img 
-                                src={video.thumbnail} 
-                                alt={video.title}
-                                className="w-full h-48 object-cover"
-                            />
-                            <span className="absolute bottom-2 right-2 bg-black bg-opacity-55 text-white text-sm px-2 py-1 rounded">
-                                {video.duration}
-                            </span>
-                        </div>
-                        <div className="p-2.5">
-                            <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2">
-                                {video.title}
-                            </h3>
-                            <p className="text-gray-500 text-sm">
-                                {video.views}
-                            </p>
+                    <div 
+                        key={video.id}
+                        className="flex items-center p-2 hover:bg-[#272727] rounded"
+                    >
+                        <img
+                            src={video.thumbnail}
+                            alt={video.title}
+                            className="w-24 h-16 object-cover rounded"
+                        />
+                        <div className="ml-3">
+                            <h3 className="font-medium line-clamp-2 text-[#f1f1f1]">{video.title}</h3>
+                            <p className="text-sm text-[#aaa]">{video.views}</p>
+                            <p className="text-sm text-[#aaa]">last_watched</p>
                         </div>
                     </div>
                 ))}

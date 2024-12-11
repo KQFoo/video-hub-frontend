@@ -51,25 +51,25 @@ export default function Playlist() {
     );
 
     return (
-        <div className="p-6">
-            <div className="mb-6 relative">
+        <div className="bg-[#0f0f0f] text-[#f1f1f1] p-6">
+            <div className="flex justify-center mb-6 relative">
                 <input
                     type="text"
                     placeholder="Search"
                     value={searchQuery}
                     onChange={(e) => setSearchQuery(e.target.value)}
-                    className="w-full px-4 py-2 rounded border border-gray-300 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    className="w-3/4 max-w-md px-4 py-2 rounded border border-[#272727] focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent text-[#f1f1f1] bg-[#0f0f0f]"
                 />
                 {searchQuery && filteredVideos.length > 0 && (
-                    <div className="absolute z-10 w-full mt-1 bg-white border border-gray-200 rounded-md shadow-lg">
+                    <div className="absolute z-10 w-full mt-1 bg-[#0f0f0f] border border-[#272727] rounded-md shadow-lg">
                         {filteredVideos.map((video) => (
                             <div 
                                 key={video.id} 
-                                className="px-4 py-2 hover:bg-gray-100 cursor-pointer flex items-center gap-2"
+                                className="px-4 py-2 hover:bg-[#272727] cursor-pointer flex items-center gap-2 text-[#f1f1f1]"
                                 onClick={() => setSearchQuery(video.title)}
                             >
                                 <div>
-                                    <p className="text-sm font-medium text-gray-800">{video.title}</p>
+                                    <p className="text-sm font-medium text-[#f1f1f1]">{video.title}</p>
                                 </div>
                             </div>
                         ))}
@@ -82,25 +82,29 @@ export default function Playlist() {
                 )} */}
             </div>
             <div onClick={() => setSearchQuery("")}>
-                <h2 className="text-xl font-bold mb-4 text-gray-800">Playlist</h2>
+                <h2 className="text-xl font-bold mb-4 text-[#f1f1f1]">Playlist 
+                    <span className="ml-2 italic text-sm font-medium text-[#aaa]">
+                        (Total: {filteredVideos.length} {filteredVideos.length === 1 ? "video" : "videos"})
+                    </span>
+                </h2>
                 <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
                     {filteredVideos.map((video) => (
-                        <div key={video.id} className="rounded overflow-hidden hover:shadow-lg transition-shadow duration-300">
+                        <div key={video.id} className="rounded overflow-hidden hover:bg-[#272727] transition-shadow duration-300">
                             <div className="relative">
                                 <img 
                                     src={video.thumbnail} 
                                     alt={video.title}
                                     className="w-full h-48 object-cover"
                                 />
-                                <span className="absolute bottom-2 right-2 bg-black bg-opacity-55 text-white text-sm px-2 py-1 rounded">
+                                <span className="absolute bottom-2 right-2 bg-[#0f0f0f] bg-opacity-55 text-[#f1f1f1] text-sm px-2 py-1 rounded">
                                     {video.duration}
                                 </span>
                             </div>
                             <div className="p-2.5">
-                                <h3 className="font-semibold text-gray-800 mb-1 line-clamp-2">
+                                <h3 className="font-semibold text-[#f1f1f1] mb-1 line-clamp-2">
                                     {video.title}
                                 </h3>
-                                <p className="text-gray-500 text-sm">
+                                <p className="text-[#aaa] text-sm">
                                     {video.views}
                                 </p>
                             </div>
