@@ -15,12 +15,14 @@ import {
     // ChevronRight,
     Info,
     FileText,
-    FileVideo
+    FileVideo,
+    ChevronLeft,
+    X
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarContent from './SidebarContent';
 
-export default function VideoPlay() {
+export default function PlayVideo() {
     const navigate = useNavigate();
     const location = useLocation();
     const videoRef = useRef(null);
@@ -40,22 +42,24 @@ export default function VideoPlay() {
     const [duration, setDuration] = useState(0);
     const [searchQuery, setSearchQuery] = useState("");
     const [filterBy, setFilterBy] = useState("all");
+    const [sidebarWidth, setSidebarWidth] = useState("w-96");
+    const [showSidebar, setShowSidebar] = useState(true);
+
 
     useEffect(() => {
         // Check if video is passed through navigation state
         if (location.state && location.state.selectedVideo) {
             setSelectedVideo(location.state.selectedVideo);
-            setVideoTitle(location.state.selectedVideo.title);
+            setVideoTitle(location.state.selectedVideo.video_name);
         } else {
             // Fallback to default video if no video is selected
             setSelectedVideo({
-                id: 1,
-                videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4",
+                video_id: 1,
+                link: "https://www.w3schools.com/html/mov_bbb.mp4",
                 thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-                title: "Default Video",
-                artist: "Unknown Artist",
+                video_name: "Default Video",
                 views: "0 views",
-                duration: "0:00"
+                // duration: "0:00"
             });
             setVideoTitle("Default Video");
         }
@@ -64,9 +68,10 @@ export default function VideoPlay() {
     // Sample videos data
     const [playlistVideos] = useState([
         {
-            id: 1,
+            video_id: 1,
+            link: "https://www.w3schools.com/html/mov_bbb.mp4",
             thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-            title: "Never Gonna Give You Up",
+            video_name: "Never Gonna Give You Up",
             artist: "Rick Astley",
             views: "1.2B views",
             duration: "3:32",
@@ -147,17 +152,29 @@ export default function VideoPlay() {
         }
     };
 
-    const handleTitleEdit = () => {
+    const handleTitleEdit = async () => {
         if (isEditing) {
-            // Save the new title
-            // You would typically make an API call here
-            console.log("Saving new title:", videoTitle);
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/rename`, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                },
+                body: JSON.stringify({ video_name: videoTitle }),
+            });
+
+            const data = await response.json();
+
+            if (data.success) {
+                console.log("Title updated successfully");
+            } else {
+                console.error("Failed to update title");
+            }
         }
         setIsEditing(!isEditing);
     };
 
     const filteredVideos = playlistVideos.filter(video => {
-        const matchesSearch = video.title.toLowerCase().startsWith(searchQuery.toLowerCase());
+        const matchesSearch = video.video_name.toLowerCase().startsWith(searchQuery.toLowerCase());
         
         // Apply different sorting/filtering based on filterBy value
         let matchesFilter = true;
@@ -187,9 +204,13 @@ export default function VideoPlay() {
     if (!selectedVideo) return <div>Loading...</div>;
 
     return (
-        <div className="flex flex-col md:flex-row h-screen bg-[#0f0f0f]">
+        <div className="flex flex-col md:flex-row h-screen bg-[#0f0f0f]" onTimeUpdate={handleTimeUpdate}>
             {/* Main Content */}
-            <div className="flex-1 p-4 md:p-6 overflow-y-auto">
+            <div className={`flex-1 p-4 md:p-6 overflow-y-auto scrollbar-thin 
+                            scrollbar-track-[#0f0f0f] 
+                            scrollbar-thumb-[#272727] 
+                            hover:scrollbar-thumb-[#3a3a3a]
+                            ${!showSidebar ? 'w-full' : 'w-96'}`}>
                 {/* Back Button */}
                 <button 
                     onClick={() => navigate(-1)}
@@ -200,16 +221,27 @@ export default function VideoPlay() {
                 </button>
 
                 {/* Video Player */}
-                <div onClick={togglePlay} className="bg-black rounded overflow-hidden">
+                <div className="bg-black rounded overflow-hidden">
                     <div className="relative aspect-video">
                         <video
+                            onClick={togglePlay} 
                             ref={videoRef}
-                            src={selectedVideo?.videoUrl}
+                            src={`${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/display`}
                             className="w-full h-full object-cover"
                             onTimeUpdate={handleTimeUpdate}
-                            onPlay={() => setIsPlaying(true)}
-                            onPause={() => setIsPlaying(false)}
+                            // onPlay={() => setIsPlaying(true)}
+                            // onPause={() => setIsPlaying(false)}
+                            onError={(e) => {
+                                console.error('Video loading error:', e);
+                                console.error('Video source:', `${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/display`);
+                            }}
+                            // controls
                         />
+                        {!selectedVideo?.video_id && (
+                            <div className="absolute inset-0 flex items-center justify-center bg-black text-white">
+                                Video not available
+                            </div>
+                        )}
                         
                         {/* Video Controls */}
                         <div className="absolute bottom-0 left-0 right-0 bg-gradient-to-t from-black/70 to-transparent p-3 md:p-4">
@@ -263,6 +295,7 @@ export default function VideoPlay() {
 
                 {/* Video Information */}
                 <div className="mt-3 md:mt-4 space-y-3 md:space-y-4">
+                    <p className="text-sm italic md:text-base text-[#f1f1f1]">* Follow naming format: "artist - title"</p>
                     {/* Title */}
                     <div className="flex items-center justify-between">
                         {isEditing ? (
@@ -270,11 +303,11 @@ export default function VideoPlay() {
                                 type="text"
                                 value={videoTitle}
                                 onChange={(e) => setVideoTitle(e.target.value)}
-                                className="flex-1 text-xl md:text-2xl font-bold px-2 py-1 bg-[#121212] border border-[#272727] rounded text-[#f1f1f1] focus:outline-none focus:border-[#3ea6ff]"
+                                className="flex-1 text-lg md:text-2xl font-bold px-2 py-1 bg-[#121212] border border-[#272727] rounded text-[#f1f1f1] focus:outline-none focus:border-[#3ea6ff]"
                                 autoFocus
                             />
                         ) : (
-                            <h2 className="text-xl md:text-2xl font-bold text-[#f1f1f1]">{videoTitle}</h2>
+                            <h2 className="text-lg md:text-2xl font-bold text-[#f1f1f1]">{videoTitle}</h2>
                         )}
                         <button 
                             onClick={handleTitleEdit}
@@ -285,10 +318,10 @@ export default function VideoPlay() {
                     </div>
 
                     <div className="text-xs md:text-sm text-[#aaa]">
-                        <p>link</p>
-                        <p>views</p>
-                        <p>created_at</p>
-                        <p>last_watched</p>
+                        <a href={selectedVideo?.link} target="_blank" className="text-[#3ea6ff]">Watch on YouTube</a>
+                        <p>{selectedVideo?.views} views</p>
+                        <p>Created on: {selectedVideo?.created_at.split('T')[0]}</p>
+                        <p>Last watched: {selectedVideo?.last_watched.split('T')[0]}</p>
                     </div>
                     
                     {/* Action Buttons */}
@@ -337,6 +370,7 @@ export default function VideoPlay() {
             </div>
 
             {/* SidebarContent */}
+            {showSidebar && (
             <SidebarContent 
                 showLyrics={showLyrics} 
                 showInfo={showInfo} 
@@ -346,9 +380,17 @@ export default function VideoPlay() {
                 filterBy={filterBy} 
                 setFilterBy={setFilterBy} 
                 filteredVideos={filteredVideos} 
-                selectedVideo={selectedVideo} 
-                className="md:w-96"
+                selectedVideo={selectedVideo}
+                width={sidebarWidth}
+                onClose={() => setShowSidebar(false)}
             />
+        )}
+        <button
+            onClick={() => setShowSidebar(!showSidebar)}
+            className="fixed bottom-4 right-4 z-50 bg-[#272727] text-white p-2 rounded-full"
+        >
+            {showSidebar ? <X size={24} /> : <ChevronLeft size={24} />}
+        </button>
         </div>
     );
 }

@@ -5,7 +5,7 @@ import Sidebar, { SidebarItem, Submenu } from "./components/Sidebar";
 import DownloadVideo from "./components/Download";
 import Recommendation from "./components/Recommendation";
 import Playlist from "./components/Playlist";
-import VideoPlay from "./components/Video";
+import PlayVideo from "./components/Video";
 
 function AppContent() {
   const [activeItem, setActiveItem] = useState('home');
@@ -94,7 +94,7 @@ function App() {
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<AppContent />} />
-        <Route path="/VideoPlay" element={<VideoPlay />} />
+        <Route path="/watch" element={<PlayVideo />} />
       </Routes>
     </BrowserRouter>
   );

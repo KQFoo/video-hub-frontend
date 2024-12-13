@@ -50,13 +50,13 @@ export default function Recommendation() {
 
     return (
         <div className="bg-[#0f0f0f] text-[#f1f1f1] p-4">
-            <h1 className="text-2xl font-bold mb-4">Recommendations</h1>
+            <h1 className="text-2xl font-bold mb-4">Unwatched last 30 days</h1>
             <div className="space-y-2">
                 {recommendedVideos.map((video) => (
                     <div 
                         key={video.id}
                         className="flex items-center p-2 hover:bg-[#272727] rounded"
-                        onClick={() => navigate('/VideoPlay', { state: { selectedVideo: video } })}
+                        onClick={() => navigate(`/watch?v=${video.title.split(" ").join("")}`, { state: { selectedVideo: video } })}
                     >
                         <img
                             src={video.thumbnail}
