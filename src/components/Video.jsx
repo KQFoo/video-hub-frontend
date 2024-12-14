@@ -22,12 +22,13 @@ import {
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarContent from './SidebarContent';
 
-export default function PlayVideo() {
+export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const navigate = useNavigate();
     const location = useLocation();
     const videoRef = useRef(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [isPlaying, setIsPlaying] = useState(false);
+    const [isLoading, setIsLoading] = useState(true);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [isShown, setIsShown] = useState(false);
@@ -44,9 +45,37 @@ export default function PlayVideo() {
     const [filterBy, setFilterBy] = useState("all");
     const [sidebarWidth, setSidebarWidth] = useState("w-96");
     const [showSidebar, setShowSidebar] = useState(true);
-
+    const [videos, setVideos] = useState([]);
 
     useEffect(() => {
+        // Reset mini-player when navigating to watch route
+        handleGlobalMiniPlayer({
+            video: null,
+            isMinimizing: false
+        });
+
+        const fetchVideos = async () => {
+            try {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/${selectedVideo?.playlist_id}/find-all-videos`, {
+                    method: "GET",
+                    headers: {
+                        "Content-Type": "application/json",
+                    }});
+                
+                const data = await response.json();
+
+                if(data.success) { 
+                    setVideos(data.data);
+                } else {
+                    console.log("No videos found"); 
+                    setVideos([]);
+                }
+            } catch (error) {
+                console.error("Fetch error:", error);
+                setVideos([]);
+            }
+        };
+
         // Check if video is passed through navigation state
         if (location.state && location.state.selectedVideo) {
             setSelectedVideo(location.state.selectedVideo);
@@ -63,28 +92,10 @@ export default function PlayVideo() {
             });
             setVideoTitle("Default Video");
         }
-    }, [location.state]);
 
-    // Sample videos data
-    const [playlistVideos] = useState([
-        {
-            video_id: 1,
-            link: "https://www.w3schools.com/html/mov_bbb.mp4",
-            thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
-            video_name: "Never Gonna Give You Up",
-            artist: "Rick Astley",
-            views: "1.2B views",
-            duration: "3:32",
-            lyrics: "Never gonna give you up...",
-            info: {
-                artist: "Rick Astley",
-                album: "Whenever You Need Somebody",
-                year: "1987",
-                genre: "Pop"
-            }
-        },
-        // Add more videos
-    ]);
+        fetchVideos();
+        setIsLoading(false);
+    }, [selectedVideo, location.state]);
 
     // Video Control Functions
     const togglePlay = () => {
@@ -154,7 +165,7 @@ export default function PlayVideo() {
 
     const handleTitleEdit = async () => {
         if (isEditing) {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/rename`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/rename/${selectedVideo?.video_id}`, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -173,7 +184,7 @@ export default function PlayVideo() {
         setIsEditing(!isEditing);
     };
 
-    const filteredVideos = playlistVideos.filter(video => {
+    const filteredVideos = videos.filter(video => {
         const matchesSearch = video.video_name.toLowerCase().startsWith(searchQuery.toLowerCase());
         
         // Apply different sorting/filtering based on filterBy value
@@ -184,8 +195,11 @@ export default function PlayVideo() {
         } else if (filterBy === 'mostRecent') {
             // Sort by date (assuming we have a date property)
             matchesFilter = true; // We'll sort after filtering
-        } else if (filterBy === 'alphabetical') {
-            // Sort alphabetically
+        } else if (filterBy === 'leastViewed') {
+            // Sort by views (assuming we have a views property)
+            matchesFilter = true; // We'll sort after filtering
+        } else if (filterBy === 'leastRecent') {
+            // Sort by date (assuming we have a date property)
             matchesFilter = true; // We'll sort after filtering
         }
 
@@ -194,14 +208,44 @@ export default function PlayVideo() {
 
     // Apply sorting based on filterBy
     if (filterBy === 'mostViewed') {
-        filteredVideos.sort((a, b) => (b.views || 0) - (a.views || 0));
+        // filteredVideos.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (filterBy === 'mostRecent') {
         filteredVideos.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
-    } else if (filterBy === 'alphabetical') {
-        filteredVideos.sort((a, b) => a.title.localeCompare(b.title));
+    } else if (filterBy === 'leastViewed') {
+        filteredVideos.sort((a, b) => (a.views || 0) - (b.views || 0));
+    } else if (filterBy === 'leastRecent') {
+        // Sort by the earliest date, prioritizing older videos
+        filteredVideos.sort((a, b) => {
+            // Handle cases where date might be undefined or invalid
+            const dateA = a.created_at ? new Date(a.created_at) : new Date(0);
+            const dateB = b.created_at ? new Date(b.created_at) : new Date(0);
+            return dateA - dateB;
+        });
     }
 
     if (!selectedVideo) return <div>Loading...</div>;
+
+    const handleBackOrMiniPlayer = () => {
+        console.log('Minimizing video:', selectedVideo);
+        
+        // Prepare a comprehensive video state object
+        const videoState = {
+            video: selectedVideo,
+            isPlaying: isPlaying,
+            currentTime: videoRef.current ? videoRef.current.currentTime : 0,
+            volume: volume,
+            isMuted: isMuted,
+            isLooping: isLooping,
+            duration: duration,
+            isMinimizing: true  // Add this flag
+        };
+    
+        // Pass the entire video state to global mini-player
+        handleGlobalMiniPlayer(videoState);
+        
+        // Navigate back to previous route
+        navigate('/');
+    };
 
     return (
         <div className="flex flex-col md:flex-row h-screen bg-[#0f0f0f]" onTimeUpdate={handleTimeUpdate}>
@@ -213,7 +257,7 @@ export default function PlayVideo() {
                             ${!showSidebar ? 'w-full' : 'w-96'}`}>
                 {/* Back Button */}
                 <button 
-                    onClick={() => navigate(-1)}
+                    onClick={() => handleBackOrMiniPlayer()}
                     className="flex items-center text-sm md:text-md text-[#f1f1f1] mb-4 hover:text-white"
                 >
                     <ArrowLeft className="mr-2" size={16} />
@@ -221,19 +265,22 @@ export default function PlayVideo() {
                 </button>
 
                 {/* Video Player */}
+                {isLoading ? (
+                    <p className="text-[#f1f1f1]">Loading videos...</p>
+                ) : (
                 <div className="bg-black rounded overflow-hidden">
                     <div className="relative aspect-video">
                         <video
                             onClick={togglePlay} 
                             ref={videoRef}
-                            src={`${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/display`}
+                            src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`}
                             className="w-full h-full object-cover"
                             onTimeUpdate={handleTimeUpdate}
                             // onPlay={() => setIsPlaying(true)}
                             // onPause={() => setIsPlaying(false)}
                             onError={(e) => {
                                 console.error('Video loading error:', e);
-                                console.error('Video source:', `${import.meta.env.VITE_API_BASE_URL}/videos/${selectedVideo?.video_id}/display`);
+                                console.error('Video source:', `${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`);
                             }}
                             // controls
                         />
@@ -253,7 +300,8 @@ export default function PlayVideo() {
                                 <input
                                     type="range"
                                     min="0"
-                                    max={duration || 0}
+                                    max={duration}
+                                    step="0.1"
                                     value={currentTime}
                                     onChange={handleSeek}
                                     className="flex-1 h-1 bg-[#383838]"
@@ -292,6 +340,7 @@ export default function PlayVideo() {
                         </div>
                     </div>
                 </div>
+                )}
 
                 {/* Video Information */}
                 <div className="mt-3 md:mt-4 space-y-3 md:space-y-4">

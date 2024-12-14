@@ -1,11 +1,12 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
 
-export default function Playlist() {
+export default function Playlist({id}) {
     const navigate = useNavigate();
   
     const [videos, setVideos] = useState([]);
-
+    const [isLoading, setIsLoading] = useState(true);
+    
     // const Str_Random = (length) => {
     //     let result = '';
     //     const characters = 'abcdefghijklmnopqrstuvwxyz0123456789';
@@ -20,7 +21,7 @@ export default function Playlist() {
     useEffect(() => {
         const fetchVideos = async () => {
             try {
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/1/find-all-videos?filter=default`, {
+                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/${id}/find-all-videos?filter=default`, {
                     method: "GET",
                     headers: {
                         "Content-Type": "application/json",
@@ -31,20 +32,25 @@ export default function Playlist() {
                 // console.log(data);
 
                 if(data.success) { 
-                    setVideos(data.data); 
+                    setVideos(data.data || []);
                 } else {
                     console.log("No videos found"); 
+                    setVideos([]);
                 }
             } catch (error) {
                 console.error("Fetch error:", error);
+                setVideos([]);
+            } finally {
+                setIsLoading(false);
             }
         };
 
         fetchVideos();
-    }, []);
+    }, [id]);
 
     const handleVideoClick = async (video) => {
         try {
+            setIsLoading(true);
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/${video.video_id}/increment-view`, {
                 method: "PUT",
                 headers: {
@@ -109,34 +115,40 @@ export default function Playlist() {
                         (Total: {filteredVideos.length} {filteredVideos.length === 1 || filteredVideos.length === 0 ? "video" : "videos"})
                     </span>
                 </h2>
-                <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
-                    {filteredVideos.map((video) => (
-                        <div key={video.video_id}
-                             className="rounded overflow-hidden hover:bg-[#272727] transition-shadow duration-300"
-                             onClick={() => handleVideoClick(video)}
-                            >
+                {isLoading ? (
+                    <p className="text-[#f1f1f1]">Loading videos...</p>
+                ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                        {filteredVideos.length > 0 ? filteredVideos.map((video) => (
+                            <div key={video.video_id}
+                                className="rounded overflow-hidden hover:bg-[#272727] transition-shadow duration-300"
+                                onClick={() => handleVideoClick(video)}
+                                >
 
-                            <div className="relative">
-                                <img 
-                                    src={video.thumbnail} 
-                                    alt={video.video_name}
-                                    className="w-full h-48"
-                                />
-                                {/* <span className="absolute bottom-2 right-2 bg-[#0f0f0f] bg-opacity-55 text-[#f1f1f1] text-sm px-2 py-1 rounded">
-                                    {video.duration}
-                                </span> */}
+                                <div className="relative">
+                                    <img 
+                                        src={video.thumbnail} 
+                                        alt={video.video_name}
+                                        className="w-full h-48"
+                                    />
+                                    {/* <span className="absolute bottom-2 right-2 bg-[#0f0f0f] bg-opacity-55 text-[#f1f1f1] text-sm px-2 py-1 rounded">
+                                        {video.duration}
+                                    </span> */}
+                                </div>
+                                <div className="p-2.5">
+                                    <h3 className="font-semibold text-[#f1f1f1] mb-1 line-clamp-2">
+                                        {video.video_name}
+                                    </h3>
+                                    <p className="text-[#aaa] text-sm">
+                                        {video.views} views
+                                    </p>
+                                </div>
                             </div>
-                            <div className="p-2.5">
-                                <h3 className="font-semibold text-[#f1f1f1] mb-1 line-clamp-2">
-                                    {video.video_name}
-                                </h3>
-                                <p className="text-[#aaa] text-sm">
-                                    {video.views} views
-                                </p>
-                            </div>
-                        </div>
-                    ))}
-                </div>
+                        )) : (
+                            <p className="text-[#f1f1f1] italic">No videos found</p>
+                        )}
+                    </div>
+                )}
             </div>
         </div>
     );

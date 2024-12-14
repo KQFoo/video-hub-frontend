@@ -1,5 +1,5 @@
-import { useState, useEffect } from "react";
-import { LayoutDashboard, Download, Music, Video } from "lucide-react";
+import { useState, useEffect, useRef } from "react";
+import { LayoutDashboard, Download, Music, Video, DiscAlbum, Play, Pause, X } from "lucide-react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Sidebar, { SidebarItem, Submenu } from "./components/Sidebar";
 import DownloadVideo from "./components/Download";
@@ -37,9 +37,11 @@ function AppContent() {
           </>
         );
       case 'music':
-        return <Playlist />;
+        return <Playlist id={1} />;
       case 'video':
-        return <Playlist />;
+        return <Playlist id={2} />;
+      case 'music no lyrics':
+        return <Playlist id={3} />;
       default:
         return (
           <>
@@ -73,6 +75,12 @@ function AppContent() {
             onClick={() => setActiveItem('music')}
           />
           <Submenu 
+            icon={<DiscAlbum size={20} />} 
+            text="Music (No Lyrics)" 
+            active={activeItem === 'music no lyrics'}
+            onClick={() => setActiveItem('music no lyrics')}
+          />
+          <Submenu 
             icon={<Video size={20} />} 
             text="Videos" 
             active={activeItem === 'video'}
@@ -90,12 +98,125 @@ function AppContent() {
 }
 
 function App() {
+  const [globalMiniPlayer, setGlobalMiniPlayer] = useState(null);
+  const videoRef = useRef(null);
+  const [videoState, setVideoState] = useState({
+    isPlaying: false,
+    volume: 1,
+    isMuted: false,
+    currentTime: 0,
+    duration: 0
+  });
+
+  const handleGlobalMiniPlayer = (videoStateFromPlayer) => {
+    // Always reset the mini-player
+    setGlobalMiniPlayer(null);
+    setVideoState({
+      isPlaying: false, 
+      volume: 1, 
+      isMuted: false, 
+      currentTime: 0,
+      duration: 0 
+    });
+  
+    // Only set the mini-player if explicitly minimizing
+    if (videoStateFromPlayer.isMinimizing) {
+      setGlobalMiniPlayer(videoStateFromPlayer.video);
+      setVideoState(videoStateFromPlayer);
+    }
+  };
+
+  useEffect(() => {
+    if (videoRef.current) {
+      // Set initial video state
+      videoRef.current.currentTime = videoState.currentTime;
+      videoRef.current.volume = videoState.isMuted ? 0 : videoState.volume;
+      
+      // Play or pause based on previous state
+      if (videoState.isPlaying) {
+        videoRef.current.play();
+      } else {
+        videoRef.current.pause();
+      }
+    }
+  }, [globalMiniPlayer]);
+
+  const togglePlay = () => {
+    if (videoRef.current) {
+      if (videoState.isPlaying) {
+        videoRef.current.pause();
+      } else {
+        videoRef.current.play();
+      }
+      setVideoState(prev => ({ ...prev, isPlaying: !prev.isPlaying }));
+    }
+  };
+
+  const handleVolumeChange = (newVolume) => {
+    if (videoRef.current) {
+      videoRef.current.volume = newVolume;
+      setVideoState(prev => ({ 
+        ...prev, 
+        volume: newVolume, 
+        isMuted: newVolume === 0 
+      }));
+    }
+  };
+
   return (
     <BrowserRouter>
+      <div className="app">
       <Routes>
-        <Route path="/" element={<AppContent />} />
-        <Route path="/watch" element={<PlayVideo />} />
+        <Route 
+          path="/" 
+          element={<AppContent />} 
+        />
+        <Route 
+          path="/watch" 
+          element={<PlayVideo handleGlobalMiniPlayer={handleGlobalMiniPlayer} />} 
+        />
       </Routes>
+
+        {/* Global Mini Player */}
+        {globalMiniPlayer && (
+        <div className="fixed bottom-0 left-0 right-0 z-50 bg-[#272727] p-2 flex items-center">
+          <video 
+            ref={videoRef}
+            src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${globalMiniPlayer.video_id}`}
+            className="w-16 h-16 object-cover rounded-lg mr-4"
+            autoPlay
+          />
+          <div className="flex-1 flex items-center justify-between text-white">
+            <span className="text-sm truncate max-w-[180px]">
+              {globalMiniPlayer.video_name}
+            </span>
+            <div>
+              <button 
+                onClick={togglePlay}
+                className="mr-6 mb:mr-0 hover:bg-[#383838] rounded-full p-1"
+              >
+                {videoState.isPlaying ? <Pause size={20} /> : <Play size={20} />}
+              </button>
+              <button 
+                onClick={() => {
+                  setGlobalMiniPlayer(null);
+                  setVideoState({ 
+                    isPlaying: false, 
+                    volume: 1, 
+                    isMuted: false, 
+                    currentTime: 0,
+                    duration: 0 
+                  });
+                }}
+                className="mr-6 mb:mr-0 hover:bg-[#383838] rounded-full p-1"
+              >
+                <X size={20} />
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+      </div>
     </BrowserRouter>
   );
 }

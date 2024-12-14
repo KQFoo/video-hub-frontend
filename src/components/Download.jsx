@@ -14,7 +14,7 @@ export default function DownloadVideo() {
         setError(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/download`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -71,7 +71,7 @@ export default function DownloadVideo() {
                             setSuccess(null);
                         }}
                         placeholder="Paste your video link here"
-                        className="flex-1 px-4 py-2 border border-[#272727] focus:outline-none focus:ring-2 focus:ring-[#383838] focus:border-transparent text-black"
+                        className="flex-1 px-4 py-2 border border-[#272727] rounded focus:outline-none focus:ring-2 focus:ring-[#383838] focus:border-transparent text-black"
                     />
                     <button 
                         onClick={() => handleDownload(playlistId)}
@@ -85,7 +85,7 @@ export default function DownloadVideo() {
                         {isDownloading ? 'Downloading...' : 'Download'}
                     </button>
                 </div>
-                {isEditing && (
+                {isEditing && youtubeLink !== "" && (
                     <select
                         value={playlistId}
                         disabled={isDownloading}
@@ -94,6 +94,7 @@ export default function DownloadVideo() {
                     >
                         <option value="0">Select Playlist</option>
                         <option value="1">Music</option>
+                        <option value="3">Music (No Lyrics)</option>
                         <option value="2">Videos</option>
                     </select>
                 )}

@@ -1,5 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { Search, ChevronRight, X } from "lucide-react";
+import { useNavigate } from 'react-router-dom';
 
 const SidebarContent = ({
   width = "w-96",
@@ -18,6 +19,8 @@ const SidebarContent = ({
   const [recommendations, setRecommendations] = useState([]);
   const [info, setInfo] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -135,16 +138,33 @@ const SidebarContent = ({
     }
   }
 
+  const handlePlayNext = async (video) => {
+    try {
+      // Increment view count for the next video
+      const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/${video.video_id}/increment-view`, {
+        method: "PUT",
+        headers: {
+          "Content-Type": "application/json",
+        }
+      });
+
+      const data = await response.json();
+
+      if (data.success) {
+        // Navigate to the next video
+        navigate(`/watch?v=${video.video_id}`, { 
+          state: { selectedVideo: video } 
+        });
+      } else {
+        console.error("Failed to increment view count");
+      }
+    } catch (error) {
+      console.error("Error playing next video:", error);
+    }
+  }
+
   return (
     <div className={`w-96 bg-[#0f0f0f] border-l border-[#272727] p-4 overflow-y-auto scrollbar-thin scrollbar-track-[#0f0f0f] scrollbar-thumb-[#272727] hover:scrollbar-thumb-[#3a3a3a] transition-all duration-300 ${width}`}>
-      {onClose && (
-        <button 
-          onClick={onClose} 
-          className="absolute top-4 right-4 text-white hover:text-gray-300"
-        >
-          <X size={24} />
-        </button>
-      )}
       {showLyrics ? (
         <div>
           <h2 className="text-xl font-bold mb-4 text-white">Lyrics</h2>
@@ -183,6 +203,7 @@ const SidebarContent = ({
             recommendations.map((video) => (
               <div 
                 key={video.videoId}
+                onClick={() => window.open(video.url, "_blank")}
                 className="flex items-start p-2 hover:bg-[#272727] rounded"
               >
                 <img
@@ -237,6 +258,7 @@ const SidebarContent = ({
               <div 
                 key={video.video_id}
                 className="flex items-start p-2 hover:bg-[#272727] rounded"
+                onClick={() => {handlePlayNext(video);}}
               >
                 <img
                   src={video.thumbnail}
@@ -245,11 +267,14 @@ const SidebarContent = ({
                 />
                 <div className="ml-3 flex-1">
                   <h3 className="font-medium line-clamp-2 text-[#f1f1f1]">{video.video_name}</h3>
-                  <p className="text-sm text-[#aaa]">{video.views}</p>
+                  <p className="text-sm text-[#aaa]">{video.views} views</p>
                 </div>
                 <button 
                   className="p-2 ml-2 hover:bg-[#383838] rounded-full text-[#f1f1f1]"
                   title="Play Next"
+                  onClick={() => {
+                    handlePlayNext(video);
+                  }}
                 >
                   <ChevronRight size={20} />
                 </button>
