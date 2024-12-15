@@ -46,7 +46,7 @@ const [isLoading, setIsLoading] = useState(true);
                         <div 
                             key={video.id}
                             className="flex items-center p-2 hover:bg-[#272727] rounded"
-                            onClick={() => navigate(`/watch?v=${video.video_id}`, { state: { selectedVideo: video } })}
+                            onClick={() => navigate(`/watch?v=${video.v_random_id}`, { state: { selectedVideo: video } })}
                         >
                             <img
                                 src={video.thumbnail}

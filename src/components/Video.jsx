@@ -27,7 +27,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const location = useLocation();
     const videoRef = useRef(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
-    const [isPlaying, setIsPlaying] = useState(false);
+    const [isPlaying, setIsPlaying] = useState(true);
     const [isLoading, setIsLoading] = useState(true);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
@@ -46,6 +46,28 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const [sidebarWidth, setSidebarWidth] = useState("w-96");
     const [showSidebar, setShowSidebar] = useState(true);
     const [videos, setVideos] = useState([]);
+
+    const handleVideoEnd = () => {
+        // Ensure selectedVideo and videos exist before processing
+        if (!selectedVideo || !videos || videos.length === 0) return;
+
+        // Find the current video's index in the playlist
+        const currentIndex = videos.findIndex(
+            video => video.video_id === selectedVideo.video_id
+        );
+
+        // Calculate the next video index
+        if (currentIndex !== -1 && currentIndex < videos.length - 1) {
+            const nextVideo = videos[currentIndex + 1];
+            
+            // Navigate to the next video
+            navigate(`/watch?id=${nextVideo.video_id}`, { 
+                state: { selectedVideo: nextVideo } 
+            });
+
+            setIsPlaying(true);
+        }
+    };
 
     useEffect(() => {
         // Reset mini-player when navigating to watch route
@@ -96,6 +118,18 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
         fetchVideos();
         setIsLoading(false);
     }, [selectedVideo, location.state]);
+
+    useEffect(() => {
+        const videoElement = videoRef.current;
+        
+        if (videoElement) {
+            videoElement.addEventListener('ended', handleVideoEnd);
+            
+            return () => {
+                videoElement.removeEventListener('ended', handleVideoEnd);
+            };
+        }
+    }, [videoRef, videos, selectedVideo]);
 
     // Video Control Functions
     const togglePlay = () => {
@@ -223,6 +257,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
         });
     }
 
+    if (isLoading) return <div>Loading...</div>;
     if (!selectedVideo) return <div>Loading...</div>;
 
     const handleBackOrMiniPlayer = () => {
@@ -278,6 +313,8 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
                             onTimeUpdate={handleTimeUpdate}
                             // onPlay={() => setIsPlaying(true)}
                             // onPause={() => setIsPlaying(false)}
+                            autoPlay
+                            onEnded={handleVideoEnd}
                             onError={(e) => {
                                 console.error('Video loading error:', e);
                                 console.error('Video source:', `${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`);

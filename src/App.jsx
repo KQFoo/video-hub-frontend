@@ -1,11 +1,12 @@
 import { useState, useEffect, useRef } from "react";
 import { LayoutDashboard, Download, Music, Video, DiscAlbum, Play, Pause, X } from "lucide-react";
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { BrowserRouter, Routes, Route, useNavigate } from "react-router-dom";
 import Sidebar, { SidebarItem, Submenu } from "./components/Sidebar";
 import DownloadVideo from "./components/Download";
 import Recommendation from "./components/Recommendation";
 import Playlist from "./components/Playlist";
 import PlayVideo from "./components/Video";
+import { toast } from 'react-hot-toast';
 
 function AppContent() {
   const [activeItem, setActiveItem] = useState('home');
@@ -163,6 +164,52 @@ function App() {
     }
   };
 
+  const handleSeek = (newTime) => {
+    newTime = parseFloat(newTime.target.value);
+    if (videoRef.current) {
+      videoRef.current.currentTime = newTime;
+      setVideoState(prev => ({ ...prev, currentTime: newTime }));
+    }
+  };
+
+  // Global refresh prevention
+  useEffect(() => {
+    const preventRefresh = (e) => {
+      // Prevent default refresh actions
+      // e.preventDefault();
+      
+      // Block all refresh attempts
+      if (
+        e.key === 'F5' || 
+        (e.ctrlKey && e.key === 'r') || 
+        (e.metaKey && e.key === 'r')
+      ) {
+        e.preventDefault();
+        toast.error('Page refresh is disabled', {
+          position: 'top-right',
+          duration: 2000
+        });
+        return false;
+      }
+    };
+
+    const preventBrowserRefresh = (e) => {
+      e.preventDefault();
+      e.returnValue = ''; // Required for Chrome
+      return 'Page refresh is disabled';
+    };
+
+    // Add event listeners
+    window.addEventListener('keydown', preventRefresh);
+    window.addEventListener('beforeunload', preventBrowserRefresh);
+
+    // Cleanup function
+    return () => {
+      window.removeEventListener('keydown', preventRefresh);
+      window.removeEventListener('beforeunload', preventBrowserRefresh);
+    };
+  }, []);
+
   return (
     <BrowserRouter>
       <div className="app">
@@ -185,15 +232,41 @@ function App() {
             src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${globalMiniPlayer.video_id}`}
             className="w-16 h-16 object-cover rounded-lg mr-4"
             autoPlay
+            onTimeUpdate={() => setVideoState(prev => ({ ...prev, currentTime: videoRef.current.currentTime }))}
+            onDurationChange={() => setVideoState(prev => ({ ...prev, duration: videoRef.current.duration }))}
+            onEnded={togglePlay}
+            onVolumeChange={(e) => handleVolumeChange(e.target.value)}
+            onClick={togglePlay}
           />
           <div className="flex-1 flex items-center justify-between text-white">
-            <span className="text-sm truncate max-w-[180px]">
+            <span className="text-sm truncate mr-2 max-w-[180px]">
               {globalMiniPlayer.video_name}
             </span>
+            
+            <input
+              type="range"
+              min="0"
+              max={videoState.duration}
+              step="0.1"
+              value={videoState.currentTime}
+              onChange={handleSeek}
+              className="flex-1 mr-2 h-1 bg-[#383838]"
+            />
+
+            <input 
+              type="range" 
+              min="0" 
+              max="1" 
+              step="0.01" 
+              value={videoState.volume}
+              onChange={(e) => handleVolumeChange(e.target.value)}
+              className="w-16 mr-2 h-1 bg-[#383838] rounded-full"
+            />
+
             <div>
               <button 
                 onClick={togglePlay}
-                className="mr-6 mb:mr-0 hover:bg-[#383838] rounded-full p-1"
+                className="mb:mr-0 hover:bg-[#383838] rounded-full p-1"
               >
                 {videoState.isPlaying ? <Pause size={20} /> : <Play size={20} />}
               </button>

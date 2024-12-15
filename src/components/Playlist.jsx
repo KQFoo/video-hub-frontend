@@ -68,7 +68,7 @@ export default function Playlist({id}) {
             console.error("Fetch error:", error);
         }
 
-        navigate(`/watch/?v=${video.video_id}`, { state: { selectedVideo: video } });
+        navigate(`/watch/?v=${video.v_random_id}`, { state: { selectedVideo: video } });
     };
 
 

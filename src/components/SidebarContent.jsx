@@ -19,8 +19,18 @@ const SidebarContent = ({
   const [recommendations, setRecommendations] = useState([]);
   const [info, setInfo] = useState([]);
   const [isLoading, setIsLoading] = useState(false);
-
   const navigate = useNavigate();
+
+  // Modify video selection to track current video index
+  // const handleVideoSelect = (video) => {
+  //   // Reset mini-player when selecting a new video
+  //   if (handleGlobalMiniPlayer) {
+  //     handleGlobalMiniPlayer({
+  //       video: null,
+  //       isMinimizing: false
+  //     });
+  //   }
+  // };
 
   useEffect(() => {
     const fetchData = async () => {
@@ -152,7 +162,7 @@ const SidebarContent = ({
 
       if (data.success) {
         // Navigate to the next video
-        navigate(`/watch?v=${video.video_id}`, { 
+        navigate(`/watch?v=${video.v_random_id}`, { 
           state: { selectedVideo: video } 
         });
       } else {
@@ -254,11 +264,12 @@ const SidebarContent = ({
 
           {/* Video List */}
           <div className="space-y-2">
-            {filteredVideos.map((video) => (
+            {filteredVideos.map((video, index) => (
               <div 
+                aria-selected={video.video_id === selectedVideo?.video_id}
                 key={video.video_id}
-                className="flex items-start p-2 hover:bg-[#272727] rounded"
-                onClick={() => {handlePlayNext(video);}}
+                className="flex items-start p-2 hover:bg-[#272727] rounded cursor-pointer aria-selected:bg-[#272727]"
+                onClick={() => {if(video.video_id !== selectedVideo?.video_id){handlePlayNext(video);}}}
               >
                 <img
                   src={video.thumbnail}
@@ -273,7 +284,9 @@ const SidebarContent = ({
                   className="p-2 ml-2 hover:bg-[#383838] rounded-full text-[#f1f1f1]"
                   title="Play Next"
                   onClick={() => {
-                    handlePlayNext(video);
+                    if(video.video_id !== selectedVideo?.video_id){
+                      handlePlayNext(video);
+                    }
                   }}
                 >
                   <ChevronRight size={20} />
