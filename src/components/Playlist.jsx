@@ -6,6 +6,8 @@ export default function Playlist({id}) {
   
     const [videos, setVideos] = useState([]);
     const [isLoading, setIsLoading] = useState(true);
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
     
     // const Str_Random = (length) => {
     //     let result = '';
@@ -22,10 +24,12 @@ export default function Playlist({id}) {
         const fetchVideos = async () => {
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/${id}/find-all-videos?filter=default`, {
-                    method: "GET",
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                    }});
+                    },
+                    body: JSON.stringify({ username, email }),
+                });
                 
                 const data = await response.json();
 
@@ -118,10 +122,14 @@ export default function Playlist({id}) {
                 {isLoading ? (
                     <p className="text-[#f1f1f1]">Loading videos...</p>
                 ) : (
-                    <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-2.5">
+                    <div className="space-y-2 overflow-y-scroll scrollbar-thin 
+                            scrollbar-track-[#0f0f0f] 
+                            scrollbar-thumb-[#272727] 
+                            hover:scrollbar-thumb-[#3a3a3a] max-h-[76vh]">
                         {filteredVideos.length > 0 ? filteredVideos.map((video) => (
                             <div key={video.video_id}
-                                className="rounded overflow-hidden hover:bg-[#272727] transition-shadow duration-300"
+                                className="flex items-center p-2 hover:bg-[#272727] rounded"
+                                onContextMenu
                                 onClick={() => handleVideoClick(video)}
                                 >
 
@@ -129,7 +137,7 @@ export default function Playlist({id}) {
                                     <img 
                                         src={video.thumbnail} 
                                         alt={video.video_name}
-                                        className="w-full h-48"
+                                        className="w-24 h-16 object-cover rounded"
                                     />
                                     {/* <span className="absolute bottom-2 right-2 bg-[#0f0f0f] bg-opacity-55 text-[#f1f1f1] text-sm px-2 py-1 rounded">
                                         {video.duration}

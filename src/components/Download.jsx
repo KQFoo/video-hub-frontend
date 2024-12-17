@@ -8,6 +8,8 @@ export default function DownloadVideo() {
     const [playlistId, setPlaylistId] = useState(0);
     const [error, setError] = useState(null);
     const [success, setSuccess] = useState(null);
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
 
     const handleDownload = async () => {
         setIsDownloading(true);
@@ -21,7 +23,9 @@ export default function DownloadVideo() {
                 },
                 body: JSON.stringify({ 
                     url: youtubeLink,
-                    playlist_id: playlistId
+                    playlist_id: playlistId,
+                    username,
+                    email
                 }),
             });
 

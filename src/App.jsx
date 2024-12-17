@@ -7,9 +7,42 @@ import Recommendation from "./components/Recommendation";
 import Playlist from "./components/Playlist";
 import PlayVideo from "./components/Video";
 import { toast } from 'react-hot-toast';
+import Login from './components/login';
+import Signup from './components/signup';
+import ForgetPassword from './components/ForgetPassword';
 
-function AppContent() {
+// Create a centralized authentication check function
+const checkAuthentication = async () => {
+  try {
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
+
+    if (!username || !email) {
+      return false;
+    }
+
+    const res = await fetch(`${import.meta.env.VITE_API_BASE_URL}/user/find`, {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+      },
+      body: JSON.stringify({ username, email })
+    });
+
+    const data = await res.json();
+
+    if (data.success) {
+      return true;
+    }
+  } catch (error) {
+    console.error("Authentication check failed:", error);
+    return false;
+  }
+};
+
+function AppContent({ isLoggedIn, setIsLoggedIn }) {
   const [activeItem, setActiveItem] = useState('home');
+  const navigate = useNavigate();
   const [selectedVideo] = useState({
     id: 1,
     videoUrl: "https://www.w3schools.com/html/mov_bbb.mp4", // Sample video URL
@@ -26,6 +59,17 @@ function AppContent() {
       genre: "Pop"
     }
   });
+
+  // Redirect to login if not authenticated
+  useEffect(() => {
+    const validateAuth = async () => {
+      if (!isLoggedIn && !await checkAuthentication()) {
+        navigate('/login');
+      }
+    };
+    
+    validateAuth();
+  }, [isLoggedIn, navigate]);
 
   const renderContent = () => {
     switch (activeItem) {
@@ -101,6 +145,8 @@ function AppContent() {
 function App() {
   const [globalMiniPlayer, setGlobalMiniPlayer] = useState(null);
   const videoRef = useRef(null);
+  const [isCheckingAuth, setIsCheckingAuth] = useState(false);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const [videoState, setVideoState] = useState({
     isPlaying: false,
     volume: 1,
@@ -172,6 +218,26 @@ function App() {
     }
   };
 
+  useEffect(() => {
+    const verifyAuthentication = async () => {
+      setIsCheckingAuth(true);
+      try {
+        if (localStorage.getItem("username") === null) {
+          setIsLoggedIn(false);
+          return;
+        }
+        const isAuthenticated = await checkAuthentication();
+        setIsLoggedIn(isAuthenticated);
+      } catch (error) {
+        setIsLoggedIn(false);
+      } finally {
+        setIsCheckingAuth(false);
+      }
+    };
+
+    verifyAuthentication();
+  }, []);
+
   // Global refresh prevention
   useEffect(() => {
     const preventRefresh = (e) => {
@@ -215,12 +281,24 @@ function App() {
       <div className="app">
       <Routes>
         <Route 
+          path="/login" 
+          element={<Login setIsLoggedIn={setIsLoggedIn} />} 
+        />
+        <Route 
+          path="/signup" 
+          element={<Signup />} 
+        />
+        <Route 
           path="/" 
-          element={<AppContent />} 
+          element={<AppContent isLoggedIn={isLoggedIn} setIsLoggedIn={setIsLoggedIn} />} 
         />
         <Route 
           path="/watch" 
           element={<PlayVideo handleGlobalMiniPlayer={handleGlobalMiniPlayer} />} 
+        />
+        <Route 
+          path="/forget-password" 
+          element={<ForgetPassword />} 
         />
       </Routes>
 
@@ -230,15 +308,16 @@ function App() {
           <video 
             ref={videoRef}
             src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${globalMiniPlayer.video_id}`}
-            className="w-16 h-16 object-cover rounded-lg mr-4"
+            className="hidden w-16 h-16 object-cover rounded-lg mr-4"
             autoPlay
             onTimeUpdate={() => setVideoState(prev => ({ ...prev, currentTime: videoRef.current.currentTime }))}
             onDurationChange={() => setVideoState(prev => ({ ...prev, duration: videoRef.current.duration }))}
             onEnded={togglePlay}
             onVolumeChange={(e) => handleVolumeChange(e.target.value)}
-            onClick={togglePlay}
+            // onClick={togglePlay}
           />
-          <div className="flex-1 flex items-center justify-between text-white">
+          <div
+            className="flex-1 flex items-center justify-between text-white">
             <span className="text-sm truncate mr-2 max-w-[180px]">
               {globalMiniPlayer.video_name}
             </span>

@@ -5,15 +5,19 @@ export default function Recommendation() {
     const navigate = useNavigate();
 const [recommendedVideos, setVideos] = useState([]);
 const [isLoading, setIsLoading] = useState(true);
+const username = localStorage.getItem("username");
+const email = localStorage.getItem("email");
 
     useEffect(() => {
         const fetchVideos = async () => {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/retrieve-old`, {
-                method: "GET",
+                method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                }});
+                },
+                body: JSON.stringify({ username, email }),
+            });
             
             const data = await response.json();
 
@@ -41,7 +45,10 @@ const [isLoading, setIsLoading] = useState(true);
             ) : recommendedVideos.length === 0 ? (
                 <p>No videos available.</p>
             ) : (
-                <div className="space-y-2">
+                <div className="space-y-2 overflow-y-scroll scrollbar-thin 
+                            scrollbar-track-[#0f0f0f] 
+                            scrollbar-thumb-[#272727] 
+                            hover:scrollbar-thumb-[#3a3a3a] max-h-[76vh]">
                     {recommendedVideos.map((video) => (
                         <div 
                             key={video.id}

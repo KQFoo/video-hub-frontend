@@ -1,11 +1,22 @@
-import { MoreVertical, ChevronLast, ChevronFirst, ChevronDown } from "lucide-react"
+import { MoreVertical, ChevronLast, ChevronFirst, ChevronDown, LogOut } from "lucide-react"
 import { useContext, createContext, useState } from "react"
+import { useNavigate } from "react-router-dom";
 
 const SidebarContext = createContext()
 
 export default function Sidebar({ children }) {
   const [expanded, setExpanded] = useState(true)
-  
+  const navigate = useNavigate();
+
+  const handleLogout = () => {
+    // Clear localStorage
+    localStorage.removeItem("username");
+    localStorage.removeItem("email");
+        
+    // Navigate to login page
+    navigate("/login");
+  };
+
   return (
     <aside className={`
       ${expanded ? "w-64" : "w-16"}
@@ -38,9 +49,12 @@ export default function Sidebar({ children }) {
           overflow-hidden transition-all ${expanded ? "w-52 ml-3" : "w-0"}`}
         >
           <div className="leading-4">
-            <h4 className="font-semibold text-[#f1f1f1]">John Doe</h4>
-            <span className="text-xs text-[#aaaaaa]">johndoe@gmail.com</span>
+            <h4 className="font-semibold text-[#f1f1f1]">{localStorage.getItem("username")}</h4>
+            <span className="text-xs text-[#aaaaaa]">{localStorage.getItem("email")}</span>
           </div>
+          <button onClick={handleLogout} className="p-1.5 rounded-lg hover:bg-[#272727] flex justify-end">
+            <LogOut />
+          </button>
         </div>
       </div>
     </aside>

@@ -46,6 +46,8 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const [sidebarWidth, setSidebarWidth] = useState("w-96");
     const [showSidebar, setShowSidebar] = useState(true);
     const [videos, setVideos] = useState([]);
+    const username = localStorage.getItem("username");
+    const email = localStorage.getItem("email");
 
     const handleVideoEnd = () => {
         // Ensure selectedVideo and videos exist before processing
@@ -79,10 +81,15 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
         const fetchVideos = async () => {
             try {
                 const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/${selectedVideo?.playlist_id}/find-all-videos`, {
-                    method: "GET",
+                    method: "POST",
                     headers: {
                         "Content-Type": "application/json",
-                    }});
+                    },
+                    body: JSON.stringify({ 
+                        username, 
+                        email 
+                    }),
+                });
                 
                 const data = await response.json();
 
@@ -266,7 +273,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
         // Prepare a comprehensive video state object
         const videoState = {
             video: selectedVideo,
-            isPlaying: isPlaying,
+            isPlaying: false,
             currentTime: videoRef.current ? videoRef.current.currentTime : 0,
             volume: volume,
             isMuted: isMuted,
