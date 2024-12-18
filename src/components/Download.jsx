@@ -18,6 +18,7 @@ export default function DownloadVideo() {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
                 method: "POST",
+                mode: "no-cors",
                 headers: {
                     "Content-Type": "application/json",
                 },
