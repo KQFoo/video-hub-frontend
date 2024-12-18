@@ -271,11 +271,11 @@ const SidebarContent = ({
                 className="flex items-start p-2 hover:bg-[#272727] rounded cursor-pointer aria-selected:bg-[#272727]"
                 onClick={() => {if(video.video_id !== selectedVideo?.video_id){handlePlayNext(video);}}}
               >
-                <img
-                  src={video.thumbnail}
+                {/* <video
+                  src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
                   alt={video.video_name}
                   className="w-24 h-16 object-cover rounded"
-                />
+                /> */}
                 <div className="ml-3 flex-1">
                   <h3 className="font-medium line-clamp-2 text-[#f1f1f1]">{video.video_name}</h3>
                   <p className="text-sm text-[#aaa]">{video.views} views</p>

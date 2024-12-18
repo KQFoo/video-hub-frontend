@@ -134,11 +134,11 @@ export default function Playlist({id}) {
                                 >
 
                                 <div className="relative">
-                                    <video 
+                                    {/* <video 
                                         src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
                                         alt={video.video_name}
                                         className="w-24 h-16 object-cover rounded"
-                                    />
+                                    /> */}
                                     {/* <span className="absolute bottom-2 right-2 bg-[#0f0f0f] bg-opacity-55 text-[#f1f1f1] text-sm px-2 py-1 rounded">
                                         {video.duration}
                                     </span> */}
