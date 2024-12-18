@@ -31,6 +31,13 @@ export default function DownloadVideo() {
                 }),
             });
 
+            if (!response.ok) {
+                // Log the error response
+                const errorText = await response.text();
+                console.error('Error response:', errorText);
+                throw new Error(`HTTP error! status: ${response.status}`);
+            }    
+
             const data = await response.json();
 
             if (!data.success) {
