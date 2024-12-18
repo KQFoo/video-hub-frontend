@@ -249,9 +249,9 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
 
     // Apply sorting based on filterBy
     if (filterBy === 'mostViewed') {
-        // filteredVideos.sort((a, b) => (b.views || 0) - (a.views || 0));
+        filteredVideos.sort((a, b) => (b.views || 0) - (a.views || 0));
     } else if (filterBy === 'mostRecent') {
-        filteredVideos.sort((a, b) => new Date(b.date || 0) - new Date(a.date || 0));
+        filteredVideos.sort((a, b) => new Date(b.created_at || 0) - new Date(a.created_at || 0));
     } else if (filterBy === 'leastViewed') {
         filteredVideos.sort((a, b) => (a.views || 0) - (b.views || 0));
     } else if (filterBy === 'leastRecent') {
