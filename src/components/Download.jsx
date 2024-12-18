@@ -58,7 +58,7 @@ export default function DownloadVideo() {
             console.error('Detailed Download Error:', {
                 // message: error,
                 // stack: error.stack,
-                fullError: error
+                fullError: err
             });
         }
     };
