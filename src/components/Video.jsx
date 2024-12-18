@@ -289,6 +289,30 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
         navigate('/');
     };
 
+    // const displayVideo = async () => {
+    //     try {
+    //         const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`, {
+    //             method: "GET",
+    //             headers: {
+    //                 "Content-Type": "application/json",
+    //             },
+    //         });
+            
+    //         const data = await response.json();
+    //         console.log(data.path);
+
+    //         if(data.success) { 
+    //             return data.path;
+    //         } else {
+    //             console.log("No video found"); 
+    //             return null;
+    //         }
+    //     } catch (error) {
+    //         console.error("Fetch error:", error);
+    //         return null;
+    //     }
+    // };
+
     return (
         <div className="flex flex-col md:flex-row h-screen bg-[#0f0f0f]" onTimeUpdate={handleTimeUpdate}>
             {/* Main Content */}
