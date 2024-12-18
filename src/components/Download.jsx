@@ -20,7 +20,7 @@ export default function DownloadVideo() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    //'Access-Control-Allow-Origin': '*',
+                    'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify({ 
                     //url: youtubeLink,
@@ -44,7 +44,7 @@ export default function DownloadVideo() {
             setIsEditing(false);
             setPlaylistId(0);
             setError(null);
-            setSuccess("Video downloaded successfully!");
+            setSuccess("Video(s) downloaded successfully!");
         } catch (err) {
             setError("Network error. Please try again.");
             setIsDownloading(false);
@@ -80,7 +80,7 @@ export default function DownloadVideo() {
                             setIsEditing(true);
                             setSuccess(null);
                         }}
-                        placeholder="Paste your video link here"
+                        placeholder="Paste your folder url here"
                         className="flex-1 px-4 py-2 border border-[#272727] rounded focus:outline-none focus:ring-2 focus:ring-[#383838] focus:border-transparent text-black"
                     />
                     <button 

@@ -134,8 +134,8 @@ export default function Playlist({id}) {
                                 >
 
                                 <div className="relative">
-                                    <img 
-                                        src={video.thumbnail} 
+                                    <video 
+                                        src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
                                         alt={video.video_name}
                                         className="w-24 h-16 object-cover rounded"
                                     />

@@ -55,8 +55,8 @@ const email = localStorage.getItem("email");
                             className="flex items-center p-2 hover:bg-[#272727] rounded"
                             onClick={() => navigate(`/watch?v=${video.v_random_id}`, { state: { selectedVideo: video } })}
                         >
-                            <img
-                                src={video.thumbnail}
+                            <video
+                                src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
                                 alt={video.title}
                                 className="w-24 h-16 object-cover rounded"
                             />
