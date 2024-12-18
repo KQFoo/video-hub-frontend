@@ -21,7 +21,6 @@ import {
 } from "lucide-react";
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarContent from './SidebarContent';
-import video from "../../../video-hub-backend/models/video";
 
 export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const navigate = useNavigate();
@@ -340,7 +339,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
                         <video
                             onClick={togglePlay} 
                             ref={videoRef}
-                            src={video.video_path}
+                            src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`}
                             className="w-full h-full object-cover"
                             onTimeUpdate={handleTimeUpdate}
                             // onPlay={() => setIsPlaying(true)}
