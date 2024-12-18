@@ -20,7 +20,7 @@ export default function DownloadVideo() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'Access-Control-Allow-Origin': '*'
+                    'Access-Control-Allow-Origin': `${import.meta.env.VITE_API_BASE_URL}`,
                 },
                 body: JSON.stringify({ 
                     url: youtubeLink,
@@ -28,7 +28,6 @@ export default function DownloadVideo() {
                     username,
                     email
                 }),
-                //mode: "no-cors"
             });
 
             const data = await response.json();
