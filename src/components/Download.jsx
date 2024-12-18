@@ -16,13 +16,6 @@ export default function DownloadVideo() {
         setError(null);
 
         try {
-            console.log('Download Request Received:', {
-                body: req.body,
-                headers: req.headers,
-                origin: req.get('origin'),
-                referrer: req.get('referrer')
-            });
-    
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
                 method: "POST",
                 credentials: 'include',
