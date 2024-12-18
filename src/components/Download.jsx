@@ -21,6 +21,7 @@ export default function DownloadVideo() {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: 'include',
                 body: JSON.stringify({ 
                     url: youtubeLink,
                     playlist_id: playlistId,
