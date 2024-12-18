@@ -28,7 +28,7 @@ export default function DownloadVideo() {
                     username,
                     email
                 }),
-                // mode: "no-cors"
+                mode: "no-cors"
             });
 
             const data = await response.json();
