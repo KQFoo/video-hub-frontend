@@ -56,15 +56,9 @@ export default function DownloadVideo() {
             setError("Network error. Please try again.");
             setIsDownloading(false);
             console.error('Detailed Download Error:', {
-                message: error.message,
-                stack: error.stack,
+                // message: error,
+                // stack: error.stack,
                 fullError: error
-            });
-    
-            res.status(500).json({
-                success: false,
-                message: 'Download failed',
-                errorDetails: error.message
             });
         }
     };
