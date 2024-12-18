@@ -18,10 +18,10 @@ export default function DownloadVideo() {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
                 method: "POST",
+                credentials: 'include',
                 headers: {
                     "Content-Type": "application/json",
                 },
-                // credentials: 'include',
                 body: JSON.stringify({ 
                     url: youtubeLink,
                     playlist_id: playlistId,
