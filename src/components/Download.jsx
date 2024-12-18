@@ -18,7 +18,6 @@ export default function DownloadVideo() {
         try {
             const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
                 method: "POST",
-                mode: "no-cors",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -29,14 +28,8 @@ export default function DownloadVideo() {
                     username,
                     email
                 }),
+                mode: "no-cors"
             });
-
-            if (!response.ok) {
-                // Log the error response
-                const errorText = await response.text();
-                console.error('Error response:', errorText);
-                throw new Error(`HTTP error! status: ${response.status}`);
-            }    
 
             const data = await response.json();
 
