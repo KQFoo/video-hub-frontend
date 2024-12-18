@@ -20,7 +20,7 @@ export default function DownloadVideo() {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'Access-Control-Allow-Origin': `${import.meta.env.VITE_API_BASE_URL}`,
+                    'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify({ 
                     url: youtubeLink,
