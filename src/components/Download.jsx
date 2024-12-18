@@ -16,14 +16,15 @@ export default function DownloadVideo() {
         setError(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/access`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    'Access-Control-Allow-Origin': '*',
+                    //'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify({ 
-                    url: youtubeLink,
+                    //url: youtubeLink,
+                    folder_path: youtubeLink,
                     playlist_id: playlistId,
                     username,
                     email
