@@ -80,7 +80,7 @@ export default function DownloadVideo() {
                             setIsEditing(true);
                             setSuccess(null);
                         }}
-                        placeholder="Paste your YouTube url here"
+                        placeholder="Paste your url here"
                         className="flex-1 px-4 py-2 border border-[#272727] rounded focus:outline-none focus:ring-2 focus:ring-[#383838] focus:border-transparent text-black"
                     />
                     <button 
