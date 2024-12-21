@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { 
     ArrowLeft,
     Play, 
@@ -19,6 +19,7 @@ import {
     ChevronLeft,
     X
 } from "lucide-react";
+import axios from 'axios';
 import { useNavigate, useLocation } from "react-router-dom";
 import SidebarContent from './SidebarContent';
 
@@ -28,7 +29,6 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const videoRef = useRef(null);
     const [selectedVideo, setSelectedVideo] = useState(null);
     const [isPlaying, setIsPlaying] = useState(true);
-    const [isLoading, setIsLoading] = useState(true);
     const [volume, setVolume] = useState(1);
     const [isMuted, setIsMuted] = useState(false);
     const [isShown, setIsShown] = useState(false);
@@ -50,26 +50,118 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     const email = localStorage.getItem("email");
 
     const handleVideoEnd = () => {
+        console.log('Video ended');
+        console.log('Current video:', selectedVideo);
+        console.log('Playlist:', videos);
+
         // Ensure selectedVideo and videos exist before processing
         if (!selectedVideo || !videos || videos.length === 0) return;
-
+    
         // Find the current video's index in the playlist
         const currentIndex = videos.findIndex(
             video => video.video_id === selectedVideo.video_id
         );
-
+    
         // Calculate the next video index
         if (currentIndex !== -1 && currentIndex < videos.length - 1) {
             const nextVideo = videos[currentIndex + 1];
             
             // Navigate to the next video
-            navigate(`/watch?id=${nextVideo.video_id}`, { 
-                state: { selectedVideo: nextVideo } 
+            navigate(`/watch?v=${nextVideo.v_random_id}`, { 
+                state: { 
+                    selectedVideo: nextVideo 
+                } 
             });
-
-            setIsPlaying(true);
+    
+            // Increment view count for the next video
+            const incrementView = async () => {
+                try {
+                    await axios.put(`${import.meta.env.VITE_API_BASE_URL}/videos/${nextVideo.video_id}/increment-view`);
+                } catch (error) {
+                    console.error("Failed to increment view count:", error);
+                }
+            };
+    
+            incrementView();
+        } else if (currentIndex === videos.length - 1) {
+            // If it's the last video in the playlist, optionally loop back to the first video
+            if (videos.length > 0) {
+                const firstVideo = videos[0];
+                
+                navigate(`/watch?v=${firstVideo.v_random_id}`, { 
+                    state: { 
+                        selectedVideo: firstVideo 
+                    } 
+                });
+    
+                // Increment view count for the first video
+                const incrementView = async () => {
+                    try {
+                        await axios.put(`${import.meta.env.VITE_API_BASE_URL}/videos/${firstVideo.video_id}/increment-view`);
+                    } catch (error) {
+                        console.error("Failed to increment view count:", error);
+                    }
+                };
+    
+                incrementView();
+            }
         }
     };
+
+    // Move these state declarations outside the useEffect
+    const [pagination, setPagination] = useState({
+        page: 1,
+        limit: 50,
+        total: 0,
+        hasNextPage: false
+    });
+    const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
+
+    const fetchVideos = useCallback(async (page = 1) => {
+        if (isLoading) return;
+
+        setIsLoading(true);
+        setError(null);
+
+        try {
+            const response = await axios.get(`${import.meta.env.VITE_API_BASE_URL}/playlists/${selectedVideo?.playlist_id}/videos`, {
+                params: { 
+                    page, 
+                    limit: pagination.limit,
+                    order: 'created_at',
+                    sort: 'DESC'
+                }
+            });
+            
+            const { success, videos: newVideos, pagination: newPagination } = response.data;
+
+            if (success) { 
+                setVideos(prevVideos => 
+                    page === 1 
+                        ? newVideos 
+                        : [...prevVideos, ...newVideos]
+                );
+
+                setPagination({
+                    page: newPagination.page,
+                    limit: newPagination.limit,
+                    total: newPagination.total,
+                    hasNextPage: newPagination.hasNextPage
+                });
+            } else {
+                console.log("No videos found"); 
+                setVideos([]);
+            }
+        } catch (error) {
+            console.error("Fetch error:", error);
+            setError(error.message || "Failed to fetch videos");
+            setVideos([]);
+        } finally {
+            setIsLoading(false);
+        }
+    }, [selectedVideo?.playlist_id, pagination.limit]);
+
 
     useEffect(() => {
         // Reset mini-player when navigating to watch route
@@ -77,33 +169,6 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
             video: null,
             isMinimizing: false
         });
-
-        const fetchVideos = async () => {
-            try {
-                const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/playlists/${selectedVideo?.playlist_id}/find-all-videos`, {
-                    method: "POST",
-                    headers: {
-                        "Content-Type": "application/json",
-                    },
-                    body: JSON.stringify({ 
-                        username, 
-                        email 
-                    }),
-                });
-                
-                const data = await response.json();
-
-                if(data.success) { 
-                    setVideos(data.data);
-                } else {
-                    console.log("No videos found"); 
-                    setVideos([]);
-                }
-            } catch (error) {
-                console.error("Fetch error:", error);
-                setVideos([]);
-            }
-        };
 
         // Check if video is passed through navigation state
         if (location.state && location.state.selectedVideo) {
@@ -117,26 +182,50 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
                 thumbnail: "https://i.ytimg.com/vi/dQw4w9WgXcQ/hqdefault.jpg",
                 video_name: "Default Video",
                 views: "0 views",
-                // duration: "0:00"
             });
             setVideoTitle("Default Video");
         }
 
-        fetchVideos();
-        setIsLoading(false);
+        // Infinite scroll implementation
+        const handleScroll = () => {
+            if (
+                window.innerHeight + document.documentElement.scrollTop + 1 >= 
+                document.documentElement.scrollHeight &&
+                !isLoading &&
+                pagination.hasNextPage
+            ) {
+                fetchVideos(pagination.page + 1);
+            }
+        };
+
+        window.addEventListener('scroll', handleScroll);
+
+        // Initial fetch when selectedVideo changes
+        if (selectedVideo?.playlist_id) {
+            fetchVideos(1);
+        }
+
+        // Cleanup function
+        return () => {
+            window.removeEventListener('scroll', handleScroll);
+        };
     }, [selectedVideo, location.state]);
 
     useEffect(() => {
         const videoElement = videoRef.current;
         
         if (videoElement) {
-            videoElement.addEventListener('ended', handleVideoEnd);
+            const handleVideoEndWrapper = () => {
+                handleVideoEnd();
+            };
+    
+            videoElement.addEventListener('ended', handleVideoEndWrapper);
             
             return () => {
-                videoElement.removeEventListener('ended', handleVideoEnd);
+                videoElement.removeEventListener('ended', handleVideoEndWrapper);
             };
         }
-    }, [videoRef, videos, selectedVideo]);
+    }, [videoRef, videos, selectedVideo, navigate]); 
 
     // Video Control Functions
     const togglePlay = () => {
@@ -226,7 +315,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
     };
 
     const filteredVideos = videos.filter(video => {
-        const matchesSearch = video.video_name.toLowerCase().startsWith(searchQuery.toLowerCase());
+        const matchesSearch = video.video_name.toLowerCase().includes(searchQuery.toLowerCase());
         
         // Apply different sorting/filtering based on filterBy value
         let matchesFilter = true;
@@ -340,6 +429,7 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
                             onClick={togglePlay} 
                             ref={videoRef}
                             src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${selectedVideo?.video_id}`}
+                            //src={"https://www.youtube.com/watch?v=1f6F7tGDcQw"}
                             className="w-full h-full object-cover"
                             onTimeUpdate={handleTimeUpdate}
                             // onPlay={() => setIsPlaying(true)}
@@ -436,8 +526,8 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
 
                     <div className="text-xs md:text-sm text-[#aaa]">
                         <a href={selectedVideo?.link} target="_blank" className="text-[#3ea6ff]">Watch on YouTube</a>
-                        <p>{selectedVideo?.views} views</p>
-                        <p>Created on: {selectedVideo?.created_at.split('T')[0]}</p>
+                        <p>{selectedVideo?.views || 0} views</p>
+                        <p>Date created: {selectedVideo?.created_at.split('T')[0]}</p>
                         <p>Last watched: {selectedVideo?.last_watched.split('T')[0]}</p>
                     </div>
                     
@@ -500,6 +590,12 @@ export default function PlayVideo({ handleGlobalMiniPlayer }) {
                 selectedVideo={selectedVideo}
                 width={sidebarWidth}
                 onClose={() => setShowSidebar(false)}
+                // Additional pagination and loading states
+                videos={videos}
+                pagination={pagination}
+                isLoading={isLoading}
+                error={error}
+                fetchVideos={fetchVideos}  // Pass the fetchVideos function
             />
         )}
         <button

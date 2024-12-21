@@ -1,5 +1,6 @@
 import { useState, useEffect } from "react";
 import { useNavigate } from 'react-router-dom';
+import axios from 'axios';
 
 export default function Recommendation() {
     const navigate = useNavigate();
@@ -37,6 +38,21 @@ const email = localStorage.getItem("email");
         fetchVideos();
     }, []);
 
+    const handleVideoClick = async (video) => {
+        try {
+            const change = await axios.put(`${import.meta.env.VITE_API_BASE_URL}/videos/${video.video_id}/increment-view`);
+            
+            if(!change) {
+                console.error("Failed to increment view count:", error);
+            }
+
+            navigate(`/watch/?v=${video.v_random_id}`, { state: { selectedVideo: video } });
+        } catch (error) {
+            console.error("Failed to increment view count:", error);
+            navigate(`/watch/?v=${video.v_random_id}`, { state: { selectedVideo: video } });
+        }
+    };
+
     return (
         <div className="bg-[#0f0f0f] text-[#f1f1f1] p-4">
             <h1 className="text-2xl font-bold mb-4">Unwatched last 30 days</h1>
@@ -53,13 +69,13 @@ const email = localStorage.getItem("email");
                         <div 
                             key={video.id}
                             className="flex items-center p-2 hover:bg-[#272727] rounded"
-                            onClick={() => navigate(`/watch?v=${video.v_random_id}`, { state: { selectedVideo: video } })}
+                            onClick={() => handleVideoClick(video)}
                         >
-                            <video
+                            {/* <video
                                 src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
                                 alt={video.title}
                                 className="w-24 h-16 object-cover rounded"
-                            />
+                            /> */}
                             <div className="ml-3">
                                 <h3 className="font-medium line-clamp-2 text-[#f1f1f1]">{video.title}</h3>
                                 <p className="text-sm font-bold text-[#aaa]">{video.video_name}</p>

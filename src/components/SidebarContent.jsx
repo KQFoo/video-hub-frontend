@@ -5,20 +5,26 @@ import { useNavigate } from 'react-router-dom';
 const SidebarContent = ({
   width = "w-96",
   onClose,
-  showLyrics,
-  showInfo,
-  showRecommendations,
-  searchQuery,
-  setSearchQuery,
-  filterBy,
-  setFilterBy,
-  filteredVideos,
-  selectedVideo,
+  showLyrics = false,
+  showInfo = false,
+  showRecommendations = false,
+  searchQuery = '',
+  setSearchQuery = () => {},
+  filterBy = 'mostRecent',
+  setFilterBy = () => {},
+  filteredVideos = [],
+  selectedVideo = null,
+  // New props
+  videos = [],
+  pagination = null,
+  loading = false,
+  error = null,
+  fetchVideos = () => {},
 }) => {
   const [lyrics, setLyrics] = useState('');
   const [recommendations, setRecommendations] = useState([]);
   const [info, setInfo] = useState([]);
-  const [isLoading, setIsLoading] = useState(false);
+  const [isLoading, setIsLoading] = useState(loading);
   const navigate = useNavigate();
 
   // Modify video selection to track current video index
@@ -31,6 +37,10 @@ const SidebarContent = ({
   //     });
   //   }
   // };
+
+  useEffect(() => {
+    setIsLoading(loading);
+  }, [loading]);
 
   useEffect(() => {
     const fetchData = async () => {
@@ -262,42 +272,31 @@ const SidebarContent = ({
             </select>
           </div>
 
-          {/* Video List */}
           <div className="space-y-2">
-            {filteredVideos.map((video, index) => (
+          {filteredVideos.length > 0 ? (
+            filteredVideos.map((video, index) => (
               <div 
                 aria-selected={video.video_id === selectedVideo?.video_id}
                 key={video.video_id}
                 className="flex items-start p-2 hover:bg-[#272727] rounded cursor-pointer aria-selected:bg-[#272727]"
-                onClick={() => {if(video.video_id !== selectedVideo?.video_id){handlePlayNext(video);}}}
+                onClick={() => handlePlayNext(video)}
               >
-                {/* <video
-                  src={`${import.meta.env.VITE_API_BASE_URL}/videos/display/${video?.video_id}`} 
-                  alt={video.video_name}
-                  className="w-24 h-16 object-cover rounded"
-                /> */}
                 <div className="ml-3 flex-1">
                   <h3 className="font-medium line-clamp-2 text-[#f1f1f1]">{video.video_name}</h3>
                   <p className="text-sm text-[#aaa]">{video.views} views</p>
                 </div>
-                <button 
-                  className="p-2 ml-2 hover:bg-[#383838] rounded-full text-[#f1f1f1]"
-                  title="Play Next"
-                  onClick={() => {
-                    if(video.video_id !== selectedVideo?.video_id){
-                      handlePlayNext(video);
-                    }
-                  }}
-                >
-                  <ChevronRight size={20} />
-                </button>
               </div>
-            ))}
+            ))
+          ) : (
+            <div className="text-center text-[#aaa] py-4">
+              No videos available
+            </div>
+          )}
           </div>
-        </div>
-      )}
+    </div>
+)}
     </div>
   );
-};
+}
 
 export default SidebarContent;
