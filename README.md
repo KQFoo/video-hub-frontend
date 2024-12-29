@@ -3,7 +3,7 @@
 ## Technology Stack
 - Frontend: React + TailwindCSS
 - Backend: Express (Node.js)
-- Store metadata: MySQL (Development) / PostgreSQL (Deployment)
+- Store metadata: MySQL / PostgreSQL
 - API: YouTube API, Genius API, Last.fm API
 
 ## Preview
