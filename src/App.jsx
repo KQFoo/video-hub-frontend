@@ -10,6 +10,7 @@ import { toast } from 'react-hot-toast';
 import Login from './components/login';
 import Signup from './components/signup';
 import ForgetPassword from './components/ForgetPassword';
+import AccessFolder from "./components/AccessFolder";
 
 // Create a centralized authentication check function
 const checkAuthentication = async () => {
@@ -77,6 +78,7 @@ function AppContent({ isLoggedIn, setIsLoggedIn }) {
         return (
           <>
             <DownloadVideo />
+            <AccessFolder/>
             <hr className="border-gray-300" />
             <Recommendation />
           </>
@@ -91,6 +93,7 @@ function AppContent({ isLoggedIn, setIsLoggedIn }) {
         return (
           <>
             <DownloadVideo />
+            <AccessFolder/>
             <hr className="border-gray-300" />
             <Recommendation />
           </>

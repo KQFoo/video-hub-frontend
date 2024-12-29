@@ -16,15 +16,15 @@ export default function DownloadVideo() {
         setError(null);
 
         try {
-            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/download`, {
+            const response = await fetch(`${import.meta.env.VITE_API_BASE_URL}/v/access`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
                     'Access-Control-Allow-Origin': '*',
                 },
                 body: JSON.stringify({ 
-                    url: youtubeLink,
-                    // folder_path: youtubeLink,
+                    //url: youtubeLink,
+                    folder_path: youtubeLink,
                     playlist_id: playlistId,
                     username,
                     email
@@ -57,7 +57,7 @@ export default function DownloadVideo() {
     };
 
     return (
-        <div className="flex flex-col items-center justify-top bg-[#0f0f0f] p-4">
+        <div className="flex flex-col items-center justify-top bg-[#0f0f0f]">
             <div className="w-full max-w-2xl p-6 text-[#f1f1f1]">
                 {error && (
                     <div className="text-red-500 p-3 flex items-center justify-center rounded mb-4">
@@ -80,7 +80,7 @@ export default function DownloadVideo() {
                             setIsEditing(true);
                             setSuccess(null);
                         }}
-                        placeholder="Paste your url here"
+                        placeholder="Paste your folder path here"
                         className="flex-1 px-4 py-2 border border-[#272727] rounded focus:outline-none focus:ring-2 focus:ring-[#383838] focus:border-transparent text-black"
                     />
                     <button 
@@ -92,7 +92,7 @@ export default function DownloadVideo() {
                                 : 'bg-[#3ea6ff] hover:bg-[#5cb6ff]'
                         }`}
                     >
-                        {isDownloading ? 'Downloading...' : 'Download'}
+                        {isDownloading ? 'Browsing...' : 'Browse'}
                     </button>
                 </div>
                 {isEditing && youtubeLink !== "" && (
